@@ -1,0 +1,125 @@
+{
+  "name": "feature",
+  "version": 1,
+  "stages": [
+    {
+      "id": "product-analysis",
+      "skill": "dh-product-analysis",
+      "agent": "dh_product",
+      "depends_on": [],
+      "human_approval": true,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "ui-design",
+      "skill": "dh-ui-design",
+      "agent": "dh_designer",
+      "depends_on": [
+        "product-analysis"
+      ],
+      "human_approval": true,
+      "optional": true,
+      "max_attempts": 3
+    },
+    {
+      "id": "architecture-design",
+      "skill": "dh-architecture-design",
+      "agent": "dh_architect",
+      "depends_on": [
+        "ui-design"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "plan-tasks",
+      "skill": "dh-plan-tasks",
+      "agent": "dh_architect",
+      "depends_on": [
+        "architecture-design"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "test-plan",
+      "skill": "dh-test-feature",
+      "agent": "dh_qa",
+      "depends_on": [
+        "plan-tasks"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "implementation",
+      "skill": "dh-implement-task",
+      "agent": "main",
+      "depends_on": [
+        "test-plan"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "test-feature",
+      "skill": "dh-test-feature",
+      "agent": "dh_qa",
+      "depends_on": [
+        "implementation"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "review-change",
+      "skill": "dh-review-change",
+      "agent": "dh_reviewer",
+      "depends_on": [
+        "test-feature"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "accept-feature",
+      "skill": "dh-accept-feature",
+      "agent": "dh_acceptance",
+      "depends_on": [
+        "review-change"
+      ],
+      "human_approval": true,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "archive",
+      "skill": "dh-develop",
+      "agent": "main",
+      "depends_on": [
+        "accept-feature"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "reflection",
+      "skill": "dh-reflection",
+      "agent": "main",
+      "depends_on": [
+        "archive"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    }
+  ]
+}

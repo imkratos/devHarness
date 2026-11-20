@@ -1,0 +1,70 @@
+{
+  "name": "refactor",
+  "version": 1,
+  "stages": [
+    {
+      "id": "impact-analysis",
+      "skill": "dh-architecture-design",
+      "agent": "dh_architect",
+      "depends_on": [],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "test-plan",
+      "skill": "dh-test-feature",
+      "agent": "dh_qa",
+      "depends_on": [
+        "impact-analysis"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "implementation",
+      "skill": "dh-implement-task",
+      "agent": "main",
+      "depends_on": [
+        "test-plan"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "test-feature",
+      "skill": "dh-test-feature",
+      "agent": "dh_qa",
+      "depends_on": [
+        "implementation"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "review-change",
+      "skill": "dh-review-change",
+      "agent": "dh_reviewer",
+      "depends_on": [
+        "test-feature"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "reflection",
+      "skill": "dh-reflection",
+      "agent": "main",
+      "depends_on": [
+        "review-change"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    }
+  ]
+}

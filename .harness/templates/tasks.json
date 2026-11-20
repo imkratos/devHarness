@@ -1,0 +1,17 @@
+[
+  {
+    "id": "TASK-001",
+    "agent": "dh_backend",
+    "depends_on": [],
+    "requirements": [
+      "REQ-001"
+    ],
+    "acceptance": [
+      "AC-001"
+    ],
+    "inputs": [],
+    "write_scope": [],
+    "verification": [],
+    "status": "pending"
+  }
+]

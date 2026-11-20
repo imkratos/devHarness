@@ -1,0 +1,81 @@
+{
+  "name": "project-init",
+  "version": 1,
+  "stages": [
+    {
+      "id": "product-analysis",
+      "skill": "dh-product-analysis",
+      "agent": "dh_product",
+      "depends_on": [],
+      "human_approval": true,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "domain-modeling",
+      "skill": "dh-domain-modeling",
+      "agent": "dh_architect",
+      "depends_on": [
+        "product-analysis"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "roadmap-planning",
+      "skill": "dh-roadmap-planning",
+      "agent": "dh_architect",
+      "depends_on": [
+        "domain-modeling"
+      ],
+      "human_approval": true,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "design-system",
+      "skill": "dh-design-system",
+      "agent": "dh_designer",
+      "depends_on": [
+        "roadmap-planning"
+      ],
+      "human_approval": true,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "architecture-design",
+      "skill": "dh-architecture-design",
+      "agent": "dh_architect",
+      "depends_on": [
+        "design-system"
+      ],
+      "human_approval": true,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "bootstrap",
+      "skill": "dh-bootstrap",
+      "agent": "main",
+      "depends_on": [
+        "architecture-design"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "project-review",
+      "skill": "dh-project-review",
+      "agent": "main",
+      "depends_on": [
+        "bootstrap"
+      ],
+      "human_approval": true,
+      "optional": false,
+      "max_attempts": 3
+    }
+  ]
+}

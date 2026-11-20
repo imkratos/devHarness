@@ -1,0 +1,11 @@
+{
+  "run_id": "replace-me",
+  "workflow": "feature",
+  "change_id": null,
+  "base_commit": null,
+  "stages": {},
+  "artifacts": {},
+  "approvals": {},
+  "next_action": null,
+  "blockers": []
+}

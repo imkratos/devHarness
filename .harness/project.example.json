@@ -1,0 +1,15 @@
+{
+  "project_id": "replace-me",
+  "stack": {},
+  "commands": {
+    "start": null,
+    "build": null,
+    "unit": null,
+    "integration": null,
+    "e2e": null
+  },
+  "app_url": null,
+  "max_parallel": 3,
+  "max_attempts": 3,
+  "production_release_requires_approval": true
+}

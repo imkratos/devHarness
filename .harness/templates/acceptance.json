@@ -1,0 +1,11 @@
+[
+  {
+    "id": "AC-001",
+    "requirement_ref": "replace-with-spec-path-and-heading",
+    "scenario": "replace",
+    "expected": "replace",
+    "verification": "replace",
+    "status": "not-run",
+    "evidence": []
+  }
+]

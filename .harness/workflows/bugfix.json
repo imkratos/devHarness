@@ -1,0 +1,70 @@
+{
+  "name": "bugfix",
+  "version": 1,
+  "stages": [
+    {
+      "id": "reproduce",
+      "skill": "dh-implement-task",
+      "agent": "main",
+      "depends_on": [],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "implementation",
+      "skill": "dh-implement-task",
+      "agent": "main",
+      "depends_on": [
+        "reproduce"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "test-feature",
+      "skill": "dh-test-feature",
+      "agent": "dh_qa",
+      "depends_on": [
+        "implementation"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "review-change",
+      "skill": "dh-review-change",
+      "agent": "dh_reviewer",
+      "depends_on": [
+        "test-feature"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "accept-feature",
+      "skill": "dh-accept-feature",
+      "agent": "dh_acceptance",
+      "depends_on": [
+        "review-change"
+      ],
+      "human_approval": true,
+      "optional": false,
+      "max_attempts": 3
+    },
+    {
+      "id": "reflection",
+      "skill": "dh-reflection",
+      "agent": "main",
+      "depends_on": [
+        "accept-feature"
+      ],
+      "human_approval": false,
+      "optional": false,
+      "max_attempts": 3
+    }
+  ]
+}
