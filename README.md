@@ -1,15 +1,54 @@
 # DevHarness v1.0 中文手册
 这是项目级 Codex Skills 工具包，非独立运行时或官方插件。`dh-` 前缀避免与其他框架冲突。
 ## 安装
-需要 Git、Python 3.11+（安装和检查脚本）、支持自定义 Agent 的 Codex。新建或进入项目后执行：
+
+需要 Git、Python 3.11+（安装和检查脚本）以及支持自定义 Agent 的 Codex。
+
+### 1. 安装 DevHarness
+
+将示例路径替换为 DevHarness 所在目录和目标项目目录，在终端运行。
+
 ```bash
-python3 /path/to/DevHarness-v1/install.py /path/to/project
+python3 /path/to/devHarness/install.py /path/to/project
 cd /path/to/project
 git init # 仅新仓库需要
-npm install -g @fission-ai/openspec@latest
-openspec init --tools codex
 ```
-Codex 内输入 `/plugins` 安装 Superpowers；重启会话并确认 Skills 可发现，项目级自定义 Agent 可用。已有 AGENTS.md 或同名配置时安装器会拒绝覆盖，先人工合并再重新运行。不会自动安装依赖、修改全局配置或部署。
+
+安装器只复制项目文件。已有同名文件且内容不同时，先按安装器列出的路径手动合并。
+
+### 2. 安装并初始化 OpenSpec
+
+npm 安装方式需要 Node.js 22.20.0 或更高版本。CLI 全局安装一次。
+
+```bash
+npm install -g @fission-ai/openspec@latest
+openspec --version
+```
+
+在每个目标项目根目录初始化。这里使用 `--scope project`，将 Codex 技能放在项目的 `.agents/skills/` 下。
+
+```bash
+cd /path/to/project
+openspec init --tools codex --scope project
+openspec list
+```
+
+初始化后会生成 `openspec/`。新项目运行 `openspec list` 时通常还没有变更。详见 [OpenSpec 安装文档](https://github.com/Fission-AI/OpenSpec#quick-start)。
+
+### 3. 安装 Superpowers
+
+在支持 `codex plugin add` 的 Codex CLI 中，可以直接在终端安装。先查询当前插件市场返回的插件 ID，再用它安装。下面以 `superpowers@openai-api-curated` 为例。
+
+```bash
+codex plugin list --available --json | grep '"pluginId".*superpowers@'
+codex plugin add superpowers@openai-api-curated
+codex plugin list
+```
+
+也可以在终端运行 `codex`，进入会话后输入 `/plugins`，搜索 `superpowers` 并选择 **Install Plugin**。Codex 桌面端可在侧边栏的 **Plugins** 中搜索并安装。详见 [Superpowers 安装文档](https://github.com/obra/superpowers#codex-cli)。
+
+安装完成后，在目标项目根目录启动新的 Codex 会话。在 CLI 中输入 `$` 打开技能列表，确认能找到 `openspec-propose` 和 Superpowers 的 `test-driven-development`。
+
 ## 使用
 在项目根目录启动 Codex：
 - `$dh-project-init 我要开发……，先与我讨论产品定位和 MVP。` 新项目从产品探索开始，确认后建立全局架构、设计系统与 M0。
