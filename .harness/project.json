@@ -1,0 +1,15 @@
+{
+  "project_id": "devHarness",
+  "stack": {},
+  "commands": {
+    "start": null,
+    "build": null,
+    "unit": "python3 -B -m unittest discover -s tests -v",
+    "integration": null,
+    "e2e": "python3 -B tests/rehearse_web.py --run"
+  },
+  "app_url": null,
+  "max_parallel": 3,
+  "max_attempts": 3,
+  "production_release_requires_approval": true
+}
