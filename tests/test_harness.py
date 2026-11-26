@@ -1,5 +1,6 @@
 """Public CLI regression tests. All replies are synthetic fixtures in disposable repos."""
 from concurrent.futures import ThreadPoolExecutor
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -157,14 +158,71 @@ class HarnessTests(unittest.TestCase):
             self.reject('advance', route, first, '--artifact', report)
             tasks = self.read('.harness/templates/tasks.json')
             tasks[0].update(write_scope=['product.txt'], verification=['smoke.py'])
+            tasks.append(dict(tasks[0], id='TASK-002', status='done'))
             self.write(f'.harness/runs/{route}/tasks.json', tasks)
+            if route == 'bugfix':
+                self.reject('advance', route, first, '--artifact', report)
+                ac = dict(id='AC-002', scenario='读取文件', expected='输出内容',
+                          verification='smoke.py', requirement_ref='REQ-001')
+                ac_path = f'.harness/runs/{route}/acceptance.json'
+                self.write(ac_path, [ac])
+                self.reject('advance', route, first, '--artifact', report)
+                ac['id'] = 'AC-001'
+                self.write(ac_path, [ac])
             self.advance(route, first, report)
             if route == 'refactor':
                 self.stage(route, 'test-plan')
+            self.cli('begin', route, 'implementation')
+            pending = self.call('advance', route, 'implementation', '--artifact', report)
+            self.assertNotEqual(pending.returncode, 0)
+            self.assertIn(tasks[0]['id'], pending.stderr)
+            tasks[0]['status'] = 'done'
+            self.write(f'.harness/runs/{route}/tasks.json', tasks)
             self.stage(route, 'implementation')
             self.cli('begin', route, 'test-feature')
             self.cli('fail', route, 'test-feature', 'code', '--reason', '回归测试发现实现错误')
             self.assertEqual(self.cli('resume', route)['next_action'], 'implementation')
+            if route == 'bugfix':
+                ac.update(status='not-run', evidence=[])
+                self.write(ac_path, [ac])
+                self.assertEqual(self.cli('resume', route)['next_action'], 'implementation')
+                ac['expected'] = '新预期'
+                self.write(ac_path, [ac])
+                self.assertEqual(self.cli('resume', route)['next_action'], 'reproduce')
+
+    def test_task_inputs_in_and_outside_write_scope(self):
+        self.init_to()
+        self.cli('start', 'refactor', '--run-id', 'r', '--request', '重构')
+        tasks = self.read('.harness/templates/tasks.json')
+        contract = self.write('src-spec/contract.md', 'v1')
+        code = self.write('src/app.py', 'original')
+        tasks[0].update(write_scope=['src/'], inputs=[code, contract], verification=['smoke.py'])
+        self.write('.harness/runs/r/tasks.json', tasks)
+        self.stage('r', 'impact-analysis')
+        self.stage('r', 'test-plan')
+        self.write(code, 'modified')
+        self.assertEqual(self.cli('resume', 'r')['next_action'], 'implementation')
+        self.write(contract, 'v2')
+        self.assertEqual(self.cli('resume', 'r')['next_action'], 'impact-analysis')
+        self.assertEqual(self.read('.harness/runs/r/state.json')['stages']['test-plan']['status'], 'pending')
+
+    def test_active_v2_run_refreezes_old_task_digest(self):
+        self.init_to()
+        self.cli('start', 'refactor', '--run-id', 'r', '--request', '升级前的任务')
+        tasks = self.read('.harness/templates/tasks.json')
+        tasks[0].update(write_scope=['src/'], verification=['smoke.py'])
+        self.write('.harness/runs/r/tasks.json', tasks)
+        self.stage('r', 'impact-analysis')
+        self.stage('r', 'test-plan')
+        path = '.harness/runs/r/state.json'
+        state = self.read(path)
+        old_plan = [{k: v for k, v in task.items() if k != 'status'} for task in tasks]
+        old_digest = hashlib.sha256(json.dumps(old_plan, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+        state['stages']['impact-analysis']['task_hash'] = old_digest
+        self.write(path, state)
+        self.assertEqual(self.cli('resume', 'r')['next_action'], 'impact-analysis')
+        self.assertTrue(any(h['record'].get('task_hash') == old_digest for h in self.read(path)['history']))
+        self.assertEqual(self.stage('r', 'impact-analysis')['next_action'], 'test-plan')
 
     def test_legacy_is_readable_and_adoption_keeps_original(self):
         old = {'run_id': 'old', 'workflow': 'bugfix', 'stages': {'reproduce': 'passed'},
@@ -208,6 +266,10 @@ class HarnessTests(unittest.TestCase):
                    'change', '--parent-run', 'old', '--run-id', 'new']
         self.cli(*feature)
         self.cli(*feature)
+        self.assertEqual(self.cli(*feature[:-2])['run_id'], 'new')
+        changed_request = feature[:-2].copy()
+        changed_request[3] = '另一项需求'
+        self.reject(*changed_request)
         self.cli('start', 'bugfix', '--request', '另一个修复', '--run-id', 'other')
         conflicting = [value if value != 'old' else 'other' for value in feature]
         self.reject(*conflicting)

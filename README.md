@@ -14,7 +14,13 @@ cd /path/to/project
 git init # 仅新仓库需要
 ```
 
-安装器只复制项目文件。已有同名文件且内容不同时，先按安装器列出的路径手动合并。
+已有同名文件且内容不同时，安装器会在复制前列出冲突。手工合并后，用 `--merged` 指明要保留的清单相对路径，其余缺失文件会正常安装。例如：
+
+```bash
+python3 /path/to/devHarness/install.py /path/to/project --merged AGENTS.md
+```
+
+每个已合并文件各写一个 `--merged`，重复安装时沿用相同参数。
 
 ### 2. 安装并初始化 OpenSpec
 

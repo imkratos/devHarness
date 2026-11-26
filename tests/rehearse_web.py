@@ -40,12 +40,12 @@ class Rehearsal:
         self.root = root
         self.openspec = [openspec] if openspec else ['npx', '--yes', '--package=@fission-ai/openspec@1.2.0', 'openspec']
 
-    def command(self, *args):
+    def command(self, *args, expected_exit=0):
         result = subprocess.run(args, cwd=self.root, encoding='utf-8', capture_output=True)
         line = shlex.join(map(str, args))
         with (self.root.parent / 'commands.log').open('a', encoding='utf-8') as log:
             log.write(f'$ {line}\n{result.stdout}{result.stderr}\nexit={result.returncode}\n')
-        check(result.returncode == 0, f'{line}\n{result.stdout}{result.stderr}')
+        check(result.returncode == expected_exit, f'{line}\n{result.stdout}{result.stderr}')
         return result.stdout
 
     def cli(self, *args):
@@ -118,6 +118,36 @@ class Rehearsal:
         self.commit(f'归档 {change}')
         return [BASELINE, report]
 
+    def rehearse_regression(self, run):
+        previous = read(run / 'state.json')
+        approval = previous['approvals']['accept-feature']
+        source = self.root / 'server.py'
+        original = source.read_bytes()
+        broken = original.replace(b'(title.strip(),)', b"('regression',)")
+        check(broken != original, '无法构造新增任务名称回归')
+        source.write_bytes(broken)
+        self.commit('F1 引入任务名称保存回归')
+        result = self.cli('resume', run.name)
+        state = read(run / 'state.json')
+        check(result['next_action'] == 'implementation' and 'accept-feature' not in state['approvals']
+              and any(item['approval'] == approval for item in state['history'])
+              and not state['stages']['test-feature'].get('evidence'), '旧源码的证据与批准应回到历史')
+        self.cli('begin', run.name, 'implementation')
+        self.cli('advance', run.name, 'implementation', '--artifact', 'index.html', '--artifact', 'server.py')
+        self.cli('begin', run.name, 'test-feature')
+        self.command(sys.executable, '.harness/scripts/harness.py', 'verify', run.name, 'test-feature', 'e2e',
+                     expected_exit=1)
+        failed = read(run / 'state.json')['stages']['test-feature']['evidence']['e2e']
+        log = (self.root / failed['log']).read_text(encoding='utf-8')
+        check(failed['exit_code'] != 0 and failed['commit'] == self.command('git', 'rev-parse', 'HEAD').strip()
+              and 'PASS AC-M0-01' in log and '购买牛奶' in log and 'PASS AC-F1-01' not in log,
+              '浏览器须在回归提交上实际发现新增任务名称错误')
+        result = self.cli('fail', run.name, 'test-feature', 'code', '--reason', '新增任务名称保存错误')
+        check(result['next_action'] == 'implementation', '失败必须回到实施')
+        source.write_bytes(original)
+        self.commit('F1 修正任务名称保存')
+        return approval
+
     def run_phase(self, phase, change=None):
         self.configure(phase)
         run_id = f'{MARKER}-{phase}'
@@ -142,8 +172,10 @@ class Rehearsal:
             'ui-design': ['index.html', f'{prefix}/specs/task-list/spec.md'], 'plan-tasks': [f'{prefix}/tasks.md'],
             'test-plan': ['e2e.mjs'], 'implementation': ['index.html', 'server.py'],
         }
-        for stage in state['definition']['stages']:
-            key = stage['id']
+        stages = {stage['id']: stage for stage in state['definition']['stages']}
+        previous_approval = None
+        while key := self.cli('resume', run_id)['next_action']:
+            stage = stages[key]
             print(f'{run_id} {key}', flush=True)
             self.cli('begin', run_id, key)
             if key == 'plan-tasks':
@@ -189,6 +221,13 @@ class Rehearsal:
                 check(record['status'] == 'awaiting_approval' and record['artifacts'], f'缺少 {key} 门禁')
                 self.cli('approve', run_id, key, '--token', record['review_token'], '--reply',
                          f'{MARKER} 临时 fixture 自动输入 {phase}/{key}，仅验证令牌及产物绑定。')
+                if phase == 'F1' and key == 'accept-feature':
+                    if previous_approval is None:
+                        previous_approval = self.rehearse_regression(run)
+                    else:
+                        check(record['review_token'] != previous_approval['version']
+                              and record['commit'] != previous_approval['commit'], '修复版本需要新的验收记录')
+                        print('PASS F1 源码回归、失败回退、修复提交与重新验收', flush=True)
         check(self.cli('resume', run_id)['status'] == 'complete', f'{run_id} 尚未完成')
         return read(run / 'state.json')
 

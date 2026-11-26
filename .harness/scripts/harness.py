@@ -12,7 +12,7 @@ import tempfile
 from uuid import uuid4
 
 sys.dont_write_bytecode = True
-from gate import (GateError, acceptance, artifact_hash, clean_head, criteria, digest, fingerprint,
+from gate import (GateError, acceptance, artifact_hash, check_task_criteria, clean_head, criteria, digest, fingerprint,
                   git, local_file, read_json, require, required_commands, same_product,
                   task_package, verify_evidence)
 
@@ -107,6 +107,7 @@ def fresh(args, workflow, run_id):
 
 
 def existing_run(args, state):
+    require(state.get('request') == args.request, f'已有 run {state["run_id"]} 的原始请求与本次请求冲突')
     for field in ('parent_run', 'run_id', 'feature_id', 'change_id', 'milestone'):
         value = getattr(args, field)
         require(not value or state.get(field) == value, f'已有 run 的 {field} 与本次请求冲突')
@@ -258,7 +259,9 @@ def reconcile(run, state):
             if approval.get('source'):
                 validate_design_source(approval['source'], approval['version'])
             if 'task_hash' in record:
-                require(task_package(ROOT, run) == record['task_hash'], '任务范围或验证规则变更')
+                completed = key == 'implementation' and record['status'] in DONE
+                require(task_package(ROOT, run, state.get('change_id'), completed=completed) == record['task_hash'],
+                        '任务定义或输入基线已变化，请复核任务包')
             if 'criteria_hash' in record:
                 require(fingerprint(criteria(run)) == record['criteria_hash'], '验收条件已变化')
             if record.get('commit') and key in ('bootstrap', 'test-feature', 'accept-feature',
@@ -292,16 +295,19 @@ def gate(run, state, stage, record):
         prefix = f'openspec/changes/{state["change_id"]}/specs/'
         require(any(p.startswith(prefix) and p.endswith('/spec.md') for p in artifacts),
                 '请绑定本次变更的 OpenSpec 需求规范')
-        record['criteria_hash'] = fingerprint(criteria(run))
+    if (key == 'product-analysis' and state['workflow'] == 'feature') or key == 'reproduce':
+        ac_definitions = criteria(run)
+        if key == 'reproduce':
+            check_task_criteria(run, {ac['id'] for ac in ac_definitions})
+        record['criteria_hash'] = fingerprint(ac_definitions)
         snapshot = run / 'evidence' / f'criteria-{record["criteria_hash"]}.json'
         snapshot.parent.mkdir(exist_ok=True)
-        if not snapshot.exists():
-            save(snapshot, criteria(run))
+        save(snapshot, ac_definitions)
         artifacts[snapshot.relative_to(ROOT).as_posix()] = digest(snapshot.read_bytes())
     if key == 'review-change':
         require(any(Path(name).name == 'review.md' for name in artifacts), '请绑定实际 review.md')
     if key in ('plan-tasks', 'impact-analysis', 'reproduce', 'implementation'):
-        record['task_hash'] = task_package(ROOT, run)
+        record['task_hash'] = task_package(ROOT, run, state.get('change_id'), completed=key == 'implementation')
     checked = ('bootstrap', 'test-feature', 'accept-feature', 'project-review', 'milestone-review')
     if key in checked:
         verify_evidence(ROOT, key, record.get('evidence', {}))

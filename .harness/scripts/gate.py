@@ -94,10 +94,12 @@ def verify_evidence(root, stage, records):
         require(same_product(root, record['commit']), f'{key} 被测版本与当前产品不同')
 
 
-def task_package(root, run):
+def task_package(root, run, change=None, *, completed=False):
     rows = read_json(run / 'tasks.json')
     require(isinstance(rows, list) and rows, '缺少可实施任务')
     seen = set()
+    inputs = set()
+    writable = set()
     for row in rows:
         key = row['id']
         require(key and key not in seen and set(row['depends_on']) <= seen, f'任务依赖无效 {key}')
@@ -105,8 +107,24 @@ def task_package(root, run):
         for field in ('write_scope', 'verification', 'requirements', 'acceptance'):
             require(isinstance(row.get(field), list) and all(isinstance(x, str) and x.strip()
                     for x in row[field]) and row[field], f'{key} 缺少 {field}')
+        names = row.get('inputs', [])
+        require(isinstance(names, list) and all(isinstance(p, str) and p.strip() for p in names),
+                f'{key} 的 inputs 应为项目文件路径列表')
+        inputs.update(names)
+        writable.update((root / p).resolve() for p in row['write_scope'])
         seen.add(key)
-    return fingerprint([{k: v for k, v in row.items() if k != 'status'} for row in rows])
+    if completed:
+        pending = [row['id'] for row in rows if row.get('status') != 'done']
+        require(not pending, f'实施任务未完成：{", ".join(map(str, pending))}')
+    frozen = {}
+    for name in sorted(inputs):
+        path = (root / name).resolve()
+        require(path.is_relative_to(root), f'任务输入必须在项目内 {name}')
+        if not any(path.is_relative_to(scope) for scope in writable):
+            frozen[name] = artifact_hash(root, name, change)
+    plan = [{k: v for k, v in row.items() if k != 'status'} for row in rows]
+    # Legacy digests covered only the plan. An active run must establish its input baseline.
+    return fingerprint({'tasks': plan, 'inputs': frozen})
 
 
 def criteria(run):
@@ -134,5 +152,9 @@ def acceptance(root, run, records):
                 f'{key} 需要关联本集成版本的测试或验收日志')
         for name in ac['evidence']:
             local_file(root, name)
-    tasks = read_json(run / 'tasks.json')
-    require(all(set(t['acceptance']) <= seen for t in tasks), '存在未验收的任务 AC')
+    check_task_criteria(run, seen)
+
+
+def check_task_criteria(run, ids):
+    for task in read_json(run / 'tasks.json'):
+        require(set(task['acceptance']) <= ids, f'{task["id"]} 引用了验收清单以外的 AC')

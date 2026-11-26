@@ -42,18 +42,26 @@ def destination(directory):
     return target
 
 
-def install(directory):
+def install(directory, merged=()):
     target = destination(directory)
     missing = []
     conflicts = set()
-    for path in release_files():
+    paths = list(release_files())
+    merged = set(merged)
+    unknown = merged.difference(path.as_posix() for path in paths)
+    if unknown:
+        raise ValueError('Not in release manifest: ' + ', '.join(sorted(unknown)))
+    for path in paths:
         dest = target / path
         for parent in (dest.parent, *dest.parent.parents):
             if parent.is_symlink() or (parent.exists() and not parent.is_dir()):
                 conflicts.add(str(parent))
                 break
         else:
-            if dest.is_symlink() or (dest.exists() and
+            if path.as_posix() in merged:
+                if dest.is_symlink() or not dest.is_file():
+                    conflicts.add(str(dest))
+            elif dest.is_symlink() or (dest.exists() and
                     (not dest.is_file() or dest.read_bytes() != (SOURCE / path).read_bytes())):
                 conflicts.add(str(dest))
             elif not dest.exists():
@@ -106,9 +114,11 @@ def install(directory):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('project_dir', type=Path, metavar='PROJECT_DIR')
+    parser.add_argument('--merged', action='append', default=[], metavar='PATH',
+                        help='保留已手工合并的清单内文件，填写清单相对路径，可重复')
     args = parser.parse_args()
     try:
-        count = install(args.project_dir)
+        count = install(args.project_dir, args.merged)
     except (ValueError, OSError, RuntimeError) as error:
         parser.exit(1, f'{error}\n')
     print(f'Installed {count} new project files into {args.project_dir}')

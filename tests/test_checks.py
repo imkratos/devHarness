@@ -71,6 +71,25 @@ class ChecksTest(unittest.TestCase):
         self.assertEqual(list(self.project.iterdir()), [path])
         self.assertEqual(path.read_text(), 'preserve')
 
+    def test_install_after_manual_merge(self):
+        self.project.mkdir()
+        for name in ('AGENTS.md', 'LESSONS.md'):
+            (self.project / name).write_text('团队约定\n' + (self.kit / name).read_text())
+        rules = (self.project / 'AGENTS.md').read_bytes()
+        options = ['--merged', 'AGENTS.md']
+        self.assertIn('LESSONS.md', self.cli('install.py', self.project, *options, ok=False).stderr)
+        self.assertFalse((self.project / CHECK).exists())
+        options += ['--merged', 'LESSONS.md']
+        for invalid in ('unknown', '.harness/scripts/check.py'):
+            self.cli('install.py', self.project, *options, '--merged', invalid, ok=False)
+        self.cli('install.py', self.project, *options)
+        self.assertEqual((self.project / 'AGENTS.md').read_bytes(), rules)
+        self.assertTrue((self.project / CHECK).is_file())
+        self.assertIn('Installed 0', self.cli('install.py', self.project, *options).stdout)
+        (self.project / 'AGENTS.md').unlink()
+        (self.project / 'AGENTS.md').symlink_to(self.kit / 'AGENTS.md')
+        self.cli('install.py', self.project, *options, ok=False)
+
     def test_conflicting_file_and_nested_symlink(self):
         self.project.mkdir()
         existing = self.project / 'AGENTS.md'
