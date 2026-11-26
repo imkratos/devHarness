@@ -208,6 +208,10 @@ class HarnessTests(unittest.TestCase):
                    'change', '--parent-run', 'old', '--run-id', 'new']
         self.cli(*feature)
         self.cli(*feature)
+        self.cli('start', 'bugfix', '--request', '另一个修复', '--run-id', 'other')
+        conflicting = [value if value != 'old' else 'other' for value in feature]
+        self.reject(*conflicting)
+        self.reject(*conflicting[:-2])
         self.assertEqual(self.cli('resume', 'old')['next_action'], 'new')
         self.reject('begin', 'old', 'impact-analysis')
         spec = self.write('openspec/changes/change/specs/tool/spec.md', '新行为规范')

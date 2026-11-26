@@ -106,6 +106,14 @@ def fresh(args, workflow, run_id):
     return state
 
 
+def existing_run(args, state):
+    for field in ('parent_run', 'run_id', 'feature_id', 'change_id', 'milestone'):
+        value = getattr(args, field)
+        require(not value or state.get(field) == value, f'已有 run 的 {field} 与本次请求冲突')
+    require(not args.last_feature or 'milestone-review' in state['stages'], '已有 run 缺少里程碑整合门禁')
+    return summary(state)
+
+
 def start(args):
     require(args.request.strip(), '请输入原始需求')
     for key in (args.run_id, args.change_id, args.feature_id, args.parent_run, args.milestone):
@@ -124,7 +132,7 @@ def start(args):
             if existing:
                 require(existing['workflow'] == route and existing.get('request') == args.request,
                         '该 run ID 已用于不同请求')
-                return summary(existing)
+                return existing_run(args, existing)
         if route == 'feature':
             require(args.change_id and args.feature_id, '功能需要 --feature-id 和 --change-id')
             prior = [s for s in states if s.get('workflow') == 'feature' and
@@ -132,7 +140,7 @@ def start(args):
             if prior:
                 require(len(prior) == 1 and prior[0].get('change_id') == args.change_id and
                         prior[0].get('feature_id') == args.feature_id, '功能和变更 ID 关联冲突')
-                return summary(prior[0])
+                return existing_run(args, prior[0])
         conversion = None
         if args.parent_run:
             parent = load(args.parent_run)
