@@ -3,16 +3,10 @@ name: dh-project-init
 description: DevHarness project-init；用于项目基线、M0计划、路线图，仅在明确调用或主控派发对应阶段时执行。
 ---
 # project-init
-角色：主控。
-先读取项目 AGENTS.md 和 .harness/PROTOCOL.md。若当前为子代理，只执行本阶段，不自行推进工作流。
-## 输入
-产品想法、现有仓库。缺失关键输入时返回 blocked。
-## 操作
-1. 检查仓库和工具
-2. 初始化项目配置及 run
-3. 按 project-init workflow 调用产品、领域、路线图、设计系统、架构、基础工程等阶段
-4. 在关键决策处暂停
-5. M0 必须端到端启动与测试
-6. 最后更新当前里程碑。
-## 输出与完成条件
-项目基线、M0计划、路线图。核对实际产物、需求引用、版本与证据；未验证的项目必须标记。返回 status、artifacts、evidence、blockers、next_action；主控负责阶段状态。
+主控先读 `AGENTS.md`、`.harness/PROTOCOL.md`、对应 workflow JSON 和 `.harness/workflow-notes.md`。在项目根目录使用 `python3 .harness/scripts/harness.py`，具体用法见 `.harness/cli.md`。
+
+从用户的原始需求和现有仓库开始，检查技术栈、工具与项目配置，初始化 project-init run。
+
+1. 保存需求来源，派发产品草案、领域模型和路线图。将产品范围和 M0 目标、Feature ID、可运行路径及验收条件一起提交用户确认。
+2. 按确认范围执行设计系统门禁，只有明确批准的无 UI 依据可用于跳过。核对架构及风险后进入 bootstrap。
+3. 在整合版本实际启动 M0，运行约定测试，逐项核对 M0 验收条件。向用户展示运行方式、结果、提交与证据，经最终批准后登记交付和当前里程碑。由开发请求触发的初始化须继续处理原始需求，将后续功能 run 关联到本 run。

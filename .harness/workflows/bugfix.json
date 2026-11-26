@@ -1,6 +1,6 @@
 {
   "name": "bugfix",
-  "version": 1,
+  "version": 2,
   "stages": [
     {
       "id": "reproduce",

@@ -6,7 +6,7 @@ description: DevHarness design-system；用于design/DESIGN.md、tokens.json、�
 角色：designer。
 先读取项目 AGENTS.md 和 .harness/PROTOCOL.md。若当前为子代理，只执行本阶段，不自行推进工作流。
 ## 输入
-产品目标、用户场景。缺失关键输入时返回 blocked。
+已确认的产品和 M0 范围、用户场景。有 UI 时执行本阶段；已明确批准无 UI 时主控按 `.harness/workflow-notes.md` 记录跳过依据，复用相同 UI 时核对原批准和基线哈希。缺失关键输入时返回 blocked。
 ## 操作
 1. 先明确视觉方向、导航与信息架构
 2. 定义色彩、字体、间距、组件、响应式与无障碍

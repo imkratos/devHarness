@@ -1,6 +1,6 @@
 {
   "name": "feature",
-  "version": 1,
+  "version": 2,
   "stages": [
     {
       "id": "product-analysis",

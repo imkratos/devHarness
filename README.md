@@ -1,8 +1,8 @@
-# DevHarness v1.0 中文手册
-这是项目级 Codex Skills 工具包，非独立运行时或官方插件。`dh-` 前缀避免与其他框架冲突。
+# DevHarness v2 中文手册
+项目级技能、专业角色和本地 Python CLI 共同管理开发流程。`dh-` 前缀避免与其他框架冲突。
 ## 安装
 
-需要 Git、Python 3.11+（安装和检查脚本）以及支持自定义 Agent 的 Codex。
+需要 Git、Python 3.11+（安装、检查和运行状态 CLI）以及支持自定义 Agent 的 Codex。
 
 ### 1. 安装 DevHarness
 
@@ -60,17 +60,31 @@ codex plugin list
 ## Agent / Skill
 主会话是主控，不需要专门启动主控子代理。八个 `.codex/agents/dh_*.toml` 是专业角色。主控明确要求按对应角色执行某 Skill，传入任务包；无需手工打开八个终端。角色配置不是安全边界，继承父会话权限。若客户端不支持自定义子代理，串行降级且不得冒充独立审查。
 ## 状态与工作流
-`.harness/workflows/*.json` 为自然语言主控读取的声明式约定，不会自动执行。`.harness/workflow-notes.md` 定义特殊节点。主控从 example 复制 project.json，实际项目命令必须经验证；从 templates 初始化 run 文件。`python3 .harness/scripts/check.py` 检查配置格式及工作流依赖，不证明业务测试通过。
+主控读工作流、与用户讨论并派工。本地 CLI 保存 run、检查依赖、执行配置的测试并记录批准。首次从 `$dh-develop` 进入会先建立初始化 run；恢复时继续使用同一份请求和工作流快照。产品范围与 M0 路线图一次展示，可见 UI 和可运行结果分别确认。
+
+```bash
+python3 .harness/scripts/check.py
+python3 .harness/scripts/harness.py start project-init --request '做一个团队任务清单'
+python3 .harness/scripts/harness.py status
+python3 .harness/scripts/check.py --project
+```
+
+主控操作和升级规则见 [.harness/cli.md](.harness/cli.md)。仓库中的 [全栈任务清单样例](examples/task-list/) 可单独运行，包含 M0、创建任务和完成筛选三段浏览器验证。安装器只分发清单列出的工具包文件。
+
 ## 与外部框架的边界
 OpenSpec 维护业务规范；Superpowers 提供工程方法。不要重复启动两套完整流程；如 Skill 约束冲突，报告并采用本地对应流程。外部框架未打包，需自行安装。没有可运行浏览器或测试环境则相应验证阻塞。
 ## 示例任务包
 ```json
 {"task_id":"TASK-001","skill":"dh-implement-task","agent":"dh_backend","inputs":["openspec/changes/example/design.md"],"write_scope":["backend/src/"],"requirements":["REQ-001"],"acceptance":["AC-001"],"verification":["项目实际测试命令"],"worktree":"主控填写实际绝对路径"}
 ```
+## 验证 DevHarness 本身
+
+在工具包仓库根目录执行 `python3 -B -m unittest discover -s tests -v`。需要验证整条交付路径时，在有 Chrome、Node.js 和 npm 的机器执行 `python3 tests/rehearse_web.py --run --keep`。演练从临时目录安装发行清单，用真实浏览器和 OpenSpec 验证 M0 与两个 Feature，保留命令、日志和最终状态。自动输入的批准只存在于标有 `synthetic-test` 的测试夹具中。真人演练按 [样例说明](examples/task-list/README.md) 操作。
+
 ## 来源
 - https://developers.openai.com/codex/subagents
 - https://developers.openai.com/codex/skills
 - https://github.com/Fission-AI/OpenSpec
 - https://github.com/obra/superpowers
 ## 限制
-本版本为可安装的指令型工具包，未提供确定性状态机、强制文件权限隔离、自动持续执行、生产发布或现成业务代码。需以真实项目验证 Codex 执行效果。
+CLI 在本地文件系统上串行写入同一 run。主控负责判断需求和用户答复、核实证据内容、调用实际工具并整合工作。可执行命令来自目标项目配置，运行前由主控核实。生产发布单独授权。

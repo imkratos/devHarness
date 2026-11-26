@@ -1,7 +1,7 @@
 # 执行协议
 ## 主控
-1. 读项目配置、路线图、当前 run/state.json 与 Git 状态；选择 workflow；每个 run 使用唯一 ID，目录 .harness/runs/<id>/。
-2. 按 workflow stages 顺序执行；阶段只有在依赖通过时启动。按角色名请求 Codex 创建子代理（如果当前客户端不支持则串行执行，独立审查不可宣称为独立）。主控直接处理用户沟通和人工审批。
+1. 先核对 Git、配置和基线。用 .harness/cli.md 中的 start 创建或接续 run。空项目从原始想法开始，只创建初始化 run。
+2. 按 workflow stages 顺序执行；依赖 passed 或有经确认的不适用理由的 optional/skipped 时才启动。按角色名请求 Codex 创建子代理（如果当前客户端不支持则串行执行，独立审查不可宣称为独立）。主控直接处理用户沟通和人工审批。
 3. 每次派发提供 task_id、目标、输入路径及版本、允许写入路径、验收编号、命令、输出路径、预算与禁止事项。不要把全部历史注入子代理。
 4. 每个子代理结果由主控读取实际文件、检查 git diff 及证据；失败回到责任阶段，默认最多 3 次，超限 blocked。不得自己伪造用户批准。
 5. 状态原子写入（临时文件后 rename），一次只允许一个主控写入同一 run；保存当前阶段、产物哈希、命令证据、阻塞与下一步。上游变化使相关下游状态和批准失效，保守地重新验证。
@@ -16,6 +16,8 @@
 项目级：docs/product/PROJECT.md、docs/domain/DOMAIN-MAP.md、docs/domain/GLOSSARY.md、.planning/ROADMAP.md、docs/architecture/ARCHITECTURE.md、design/DESIGN.md。
 功能级：openspec/changes/<change>/ 下 proposal/specs/design/tasks（以实际 Schema 为准）；run 下 acceptance.json、tasks.json、test-report.md、review.md、acceptance-report.md、evidence/。正式业务需求只在 OpenSpec specs；验收 JSON 引用需求编号而非复制规范全文。UI 文件按 feature ID 存 design/features/<id>/。
 ## 风险
-不执行生产部署、数据删除、外部费用操作、凭证写入或扩大权限，除非用户明确批准。角色中的只读与路径约束属于提示词约束，非独立沙箱。所有工作流 JSON 是主控读取的约定，不是 Codex 内置执行器。
+不执行生产部署、数据删除、外部费用操作、凭证写入或扩大权限，除非用户明确批准。角色中的只读与路径约束属于提示词约束，非独立沙箱。工作流 JSON 由主控读取并由本地 CLI 校验阶段推进。只由主控调用 CLI，子代理不直接改运行状态。
+
+主控通过 .harness/cli.md 中的命令登记批准、执行命令和恢复状态。失败按环境、执行、代码、需求或 UI 分类回退。
 
 执行前还须读取 .harness/workflow-notes.md，尤其 archive 等特殊节点，禁止递归调用入口。

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "AC-M0-01",
+    "requirement_ref": "openspec/specs/task-list/spec.md#requirement-req-m0-01-读取清单",
+    "verification": "npm run e2e -- M0"
+  },
+  {
+    "id": "AC-F1-01",
+    "requirement_ref": "openspec/changes/add-task/specs/task-list/spec.md#requirement-req-f1-01-新增任务",
+    "verification": "npm run e2e -- F1"
+  },
+  {
+    "id": "AC-F2-01",
+    "requirement_ref": "openspec/changes/complete-and-filter/specs/task-list/spec.md#requirement-req-f2-01-完成任务",
+    "verification": "npm run e2e -- F2"
+  },
+  {
+    "id": "AC-F2-02",
+    "requirement_ref": "openspec/changes/complete-and-filter/specs/task-list/spec.md#requirement-req-f2-02-按状态筛选",
+    "verification": "npm run e2e -- F2"
+  }
+]

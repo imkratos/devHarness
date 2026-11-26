@@ -6,7 +6,7 @@ description: DevHarness review-change；用于review.md，仅在明确调用或�
 角色：reviewer。
 先读取项目 AGENTS.md 和 .harness/PROTOCOL.md。若当前为子代理，只执行本阶段，不自行推进工作流。
 ## 输入
-需求、diff、测试证据。缺失关键输入时返回 blocked。
+原始需求或修复／重构的既有行为依据、整合提交的 diff 和对应测试证据。缺失关键输入时返回 blocked。
 ## 操作
 1. 沿调用链审查实际实现与契约
 2. 关注回归、权限、数据隔离、并发、迁移、异常及测试有效性

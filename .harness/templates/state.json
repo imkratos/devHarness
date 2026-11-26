@@ -1,6 +1,6 @@
 {
   "run_id": "replace-me",
-  "workflow": "feature",
+  "workflow": null,
   "change_id": null,
   "base_commit": null,
   "stages": {},

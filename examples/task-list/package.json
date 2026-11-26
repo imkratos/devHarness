@@ -1,0 +1,6 @@
+{
+  "name": "devharness-task-list-example",
+  "private": true,
+  "scripts": { "e2e": "node e2e.mjs" },
+  "devDependencies": { "playwright-core": "1.56.1" }
+}

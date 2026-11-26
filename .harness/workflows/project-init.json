@@ -1,13 +1,13 @@
 {
   "name": "project-init",
-  "version": 1,
+  "version": 2,
   "stages": [
     {
       "id": "product-analysis",
       "skill": "dh-product-analysis",
       "agent": "dh_product",
       "depends_on": [],
-      "human_approval": true,
+      "human_approval": false,
       "optional": false,
       "max_attempts": 3
     },
@@ -41,7 +41,7 @@
         "roadmap-planning"
       ],
       "human_approval": true,
-      "optional": false,
+      "optional": true,
       "max_attempts": 3
     },
     {
@@ -51,7 +51,7 @@
       "depends_on": [
         "design-system"
       ],
-      "human_approval": true,
+      "human_approval": false,
       "optional": false,
       "max_attempts": 3
     },

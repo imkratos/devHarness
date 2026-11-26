@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>任务清单</title>
+<style>
+  * { box-sizing: border-box }
+  body { margin: 0; color: #213833; background: #f7f7f0; font: 1rem/1.6 'DM Sans', system-ui, sans-serif }
+  main { max-width: 38rem; margin: 10vh auto; padding: 1.5rem }
+  h1 { letter-spacing: -.04em; font-size: clamp(2rem, 8vw, 3rem) }
+  input, button, select { font: inherit; border-radius: .4rem; padding: .4rem .65rem; border: 1px solid #688078 }
+  form { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1rem }
+  form input { flex: 1 1 11rem; min-width: 0 }
+  button { color: white; background: #225344; cursor: pointer }
+  ul { list-style: none; padding: 0; border-top: 1px solid #c8d0c5 }
+  li { padding: .7rem 0; border-bottom: 1px solid #c8d0c5; overflow-wrap: anywhere }
+  li input { margin-inline: 0 .75rem; accent-color: #225344 }
+  li label:has(:checked) { color: #52655a; text-decoration: line-through }
+  [hidden] { display: none }
+</style>
+<main>
+  <h1>任务清单</h1>
+  <form hidden><input aria-label="任务名称" placeholder="任务名称" maxlength="200" required><button>新增任务</button></form>
+  <label id="filter" hidden>筛选 <select><option value="all">全部</option><option value="open">未完成</option><option value="done">已完成</option></select></label>
+  <ul aria-label="任务"></ul><p id="empty" hidden>暂无任务</p><p role="alert"></p>
+</main>
+<script type="module">
+  const form = document.querySelector('form'), input = form.querySelector('input');
+  const list = document.querySelector('ul'), select = document.querySelector('select');
+  const alert = document.querySelector('[role="alert"]');
+  let stage, tasks = [];
+
+  async function request(path, method = 'GET', data) {
+    const response = await fetch(path, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error);
+    return result;
+  }
+  function render() {
+    list.replaceChildren();
+    for (const task of tasks) {
+      if (select.value === 'done' && !task.done || select.value === 'open' && task.done) continue;
+      const row = document.createElement('li');
+      if (stage === 'F2') {
+        const label = document.createElement('label'), box = document.createElement('input');
+        box.type = 'checkbox';
+        box.checked = task.done;
+        box.addEventListener('change', async () => {
+          box.disabled = true;
+          try {
+            const result = await request(`/api/tasks/${task.id}`, 'PATCH', { done: box.checked });
+            task.done = result.done;
+            alert.textContent = '';
+          } catch (error) { alert.textContent = error.message; }
+          render();
+        });
+        label.append(box, task.title);
+        row.append(label);
+      } else { row.textContent = task.title; }
+      list.append(row);
+    }
+    document.querySelector('#empty').hidden = list.children.length > 0;
+  }
+  async function load() {
+    ({ stage, tasks } = await request('/api/tasks'));
+    form.hidden = stage === 'M0';
+    document.querySelector('#filter').hidden = stage !== 'F2';
+    render();
+  }
+  select.addEventListener('change', render);
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = form.querySelector('button');
+    button.disabled = true;
+    try {
+      await request('/api/tasks', 'POST', { title: input.value });
+      input.value = '';
+      await load();
+      alert.textContent = '';
+      input.focus();
+    } catch (error) { alert.textContent = error.message; }
+    finally { button.disabled = false; }
+  });
+  load().catch(error => { alert.textContent = error.message; });
+</script>
+</html>

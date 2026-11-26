@@ -1,6 +1,6 @@
 {
   "name": "refactor",
-  "version": 1,
+  "version": 2,
   "stages": [
     {
       "id": "impact-analysis",
