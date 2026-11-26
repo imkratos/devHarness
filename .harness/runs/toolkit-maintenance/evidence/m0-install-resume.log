@@ -1,0 +1,48 @@
+cwd=/Users/kratos/learn/github/devHarness
+$ git rev-parse HEAD
+7a4eca7c8df5102dacd53fec3bcb00c798be0547
+exit=0
+cwd=/Users/kratos/learn/github/devHarness
+$ python3 -B install.py /private/var/folders/fk/8jp_47112q9gxhwqmxdtrsl00000gn/T/devharness-m0-tghcovf_
+Installed 44 new project files into /private/var/folders/fk/8jp_47112q9gxhwqmxdtrsl00000gn/T/devharness-m0-tghcovf_
+exit=0
+cwd=/Users/kratos/learn/github/devHarness
+$ python3 -B install.py /private/var/folders/fk/8jp_47112q9gxhwqmxdtrsl00000gn/T/devharness-m0-tghcovf_
+Installed 0 new project files into /private/var/folders/fk/8jp_47112q9gxhwqmxdtrsl00000gn/T/devharness-m0-tghcovf_
+exit=0
+cwd=/private/var/folders/fk/8jp_47112q9gxhwqmxdtrsl00000gn/T/devharness-m0-tghcovf_
+$ git init -q
+exit=0
+cwd=/private/var/folders/fk/8jp_47112q9gxhwqmxdtrsl00000gn/T/devharness-m0-tghcovf_
+$ python3 -B .harness/scripts/harness.py start project-init --run-id m0-check --request '复验现有工具包'
+{
+  "run_id": "m0-check",
+  "workflow": "project-init",
+  "request": "复验现有工具包",
+  "next_action": "product-analysis",
+  "status": {
+    "status": "pending",
+    "attempts": 0
+  },
+  "blockers": []
+}
+4 workflows, 18 skills, 8 roles; project static checks passed
+exit=0
+cwd=/private/var/folders/fk/8jp_47112q9gxhwqmxdtrsl00000gn/T/devharness-m0-tghcovf_
+$ python3 -B .harness/scripts/check.py --project
+4 workflows, 18 skills, 8 roles; project static checks passed
+exit=0
+cwd=/private/var/folders/fk/8jp_47112q9gxhwqmxdtrsl00000gn/T/devharness-m0-tghcovf_
+$ python3 -B .harness/scripts/harness.py resume m0-check
+{
+  "run_id": "m0-check",
+  "workflow": "project-init",
+  "request": "复验现有工具包",
+  "next_action": "product-analysis",
+  "status": {
+    "status": "pending",
+    "attempts": 0
+  },
+  "blockers": []
+}
+exit=0

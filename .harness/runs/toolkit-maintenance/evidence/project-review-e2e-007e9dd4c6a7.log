@@ -1,0 +1,33 @@
+synthetic-test 临时目录 /private/var/folders/fk/8jp_47112q9gxhwqmxdtrsl00000gn/T/devharness-synthetic-test-u67drc0e
+Installed 44 new project files into /private/var/folders/fk/8jp_47112q9gxhwqmxdtrsl00000gn/T/devharness-synthetic-test-u67drc0e/synthetic-test
+synthetic-test-M0 product-analysis
+synthetic-test-M0 domain-modeling
+synthetic-test-M0 roadmap-planning
+synthetic-test-M0 design-system
+synthetic-test-M0 architecture-design
+synthetic-test-M0 bootstrap
+synthetic-test-M0 project-review
+synthetic-test-F1 product-analysis
+synthetic-test-F1 ui-design
+synthetic-test-F1 architecture-design
+synthetic-test-F1 plan-tasks
+synthetic-test-F1 test-plan
+synthetic-test-F1 implementation
+synthetic-test-F1 test-feature
+synthetic-test-F1 review-change
+synthetic-test-F1 accept-feature
+synthetic-test-F1 archive
+synthetic-test-F1 reflection
+synthetic-test-F2 product-analysis
+synthetic-test-F2 ui-design
+synthetic-test-F2 architecture-design
+synthetic-test-F2 plan-tasks
+synthetic-test-F2 test-plan
+synthetic-test-F2 implementation
+synthetic-test-F2 test-feature
+synthetic-test-F2 review-change
+synthetic-test-F2 accept-feature
+synthetic-test-F2 archive
+synthetic-test-F2 reflection
+synthetic-test-F2 milestone-review
+PASS synthetic-test M0、M1/F1、M1/F2、OpenSpec 归档、Chrome 整合验收

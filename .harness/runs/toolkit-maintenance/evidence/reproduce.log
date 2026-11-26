@@ -1,0 +1,6 @@
+AC1 安装已合并 AGENTS.md 1 Conflicts; merge manually, no files copied:
+/private/var/folders/fk/8jp_47112q9gxhwqmxdtrsl00000gn/T/tmpdyqoo8mv/project/AGENTS.md
+AC2 空验收清单结束复现，下一阶段 implementation
+AC3 契约变更后恢复，下一阶段 implementation
+AC4 唯一任务 pending 时结束实施，下一阶段 test-feature
+AC5 同编号不同需求成功返回 第一个需求
